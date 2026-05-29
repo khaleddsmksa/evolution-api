@@ -1,0 +1,44 @@
+# ============================================================
+#  تشغيل بوت واتساب في نفس شبكة Evolution API (الحل الأنظف)
+# ============================================================
+#
+#  هذا الملف يشغّل البوت ويضمّه إلى نفس شبكة Docker الخاصة بـ Evolution،
+#  حتى يتمكن Evolution من الوصول للبوت عبر اسم الخدمة "whatsapp-bot"
+#  دون الحاجة لـ localhost أو host.docker.internal.
+#
+#  الاستخدام:
+#    1) اعرف اسم شبكة Docker الخاصة بـ Evolution:
+#         docker network ls
+#       (غالباً شيء مثل: evolution-api_default أو evolution_default)
+#    2) ضع الاسم في المتغير EVOLUTION_NETWORK أدناه أو عبر:
+#         EVOLUTION_NETWORK=evolution-api_default docker compose up -d --build
+#    3) سجّل الـ webhook باستخدام اسم خدمة البوت:
+#         http://whatsapp-bot:3001/webhook
+#
+services:
+  whatsapp-bot:
+    build: .
+    container_name: whatsapp-bot
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - WEBHOOK_PATH=/webhook
+      # ملاحظة: داخل شبكة Docker، استخدم اسم خدمة Evolution بدل localhost.
+      # مثال: http://evolution-api:8080 (عدّل حسب اسم خدمة Evolution لديك)
+      - EVOLUTION_API_URL=${EVOLUTION_API_URL:-http://evolution-api:8080}
+      - EVOLUTION_API_KEY=${EVOLUTION_API_KEY:-change-me}
+      - EVOLUTION_INSTANCE=${EVOLUTION_INSTANCE:-mybot}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - BUSINESS_NAME=${BUSINESS_NAME:-متجر إيفُليوشن}
+      - SIMULATION_MODE=false
+    networks:
+      - evolution-net
+
+networks:
+  # الانضمام لشبكة Evolution الموجودة مسبقاً (external)
+  evolution-net:
+    external: true
+    name: ${EVOLUTION_NETWORK:-evolution-api_default}
