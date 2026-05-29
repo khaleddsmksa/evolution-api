@@ -119,6 +119,26 @@ curl http://localhost:8080/webhook/find/mybot -H "apikey: مفتاحك"
 
 ---
 
+## ⚡ Ubuntu/Linux: تشغيل تلقائي بأمر واحد
+
+بدل الخطوات اليدوية، استخدم السكربت الذي يكتشف الحاوية والشبكة والمفتاح والـ IP تلقائياً:
+
+```bash
+cd whatsapp-bot
+chmod +x start-ubuntu.sh
+
+# الخيار الأنظف: البوت داخل Docker على شبكة Evolution
+./start-ubuntu.sh
+
+# أو: البوت على المضيف مباشرة (يستخدم جسر docker0 تلقائياً)
+./start-ubuntu.sh --host
+```
+
+> يجب أن تكون الجلسة `mybot` متصلة (state=open) قبل تشغيل السكربت.
+> لاسم جلسة مختلف: `EVOLUTION_INSTANCE=myinstance ./start-ubuntu.sh`
+
+---
+
 ## 🛠️ حل المشاكل
 
 | المشكلة | الحل |
