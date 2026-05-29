@@ -7,7 +7,9 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "test": "node test/test.js"
+    "test": "node test/test.js",
+    "connect": "node src/utils/connectNumber.js",
+    "setup-webhook": "node src/utils/setupWebhook.js"
   },
   "keywords": [
     "whatsapp",
@@ -21,6 +23,7 @@
   "dependencies": {
     "axios": "^1.7.7",
     "dotenv": "^16.4.5",
-    "express": "^4.21.0"
+    "express": "^4.21.0",
+    "qrcode-terminal": "^0.12.0"
   }
 }

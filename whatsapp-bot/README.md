@@ -101,21 +101,58 @@ npm test
 
 ---
 
-## 🔗 الربط مع Evolution API الحقيقي
+## 📱 ربط رقم واتساب جديد
 
-1. تأكد أن لديك خادم Evolution API يعمل و**instance متصل بواتساب** (عبر مسح QR).
-2. اضبط `EVOLUTION_API_URL` و `EVOLUTION_API_KEY` و `EVOLUTION_INSTANCE` في `.env`.
-3. اجعل `SIMULATION_MODE=false`.
-4. سجّل عنوان البوت كـ Webhook في Evolution:
+الربط يتم على مستوى **Evolution API** (إنشاء جلسة + مسح QR)، ثم نربط البوت بها.
+
+> تأكد أولاً أن خادم Evolution API يعمل (مع PostgreSQL و Redis)، واضبط
+> `EVOLUTION_API_URL` و `EVOLUTION_API_KEY` و `EVOLUTION_INSTANCE` في `.env`.
+
+### الطريقة السريعة (سكربت جاهز)
 
 ```bash
-node src/utils/setupWebhook.js https://your-public-bot-url.com/webhook
+npm run connect
+```
+
+يقوم تلقائياً بـ: إنشاء الجلسة → عرض رمز QR في الطرفية → متابعة الاتصال حتى يكتمل.
+ثم في هاتفك: **واتساب ← الإعدادات ← الأجهزة المرتبطة ← ربط جهاز** وامسح الرمز.
+
+### الطريقة اليدوية (عبر الـ API)
+
+```bash
+# 1) إنشاء جلسة
+curl -X POST http://localhost:8080/instance/create \
+  -H "apikey: <EVOLUTION_API_KEY>" -H "Content-Type: application/json" \
+  -d '{"instanceName":"mybot","integration":"WHATSAPP-BAILEYS","qrcode":true}'
+
+# 2) جلب رمز QR (أو افتح http://localhost:8080/manager)
+curl http://localhost:8080/instance/connect/mybot -H "apikey: <EVOLUTION_API_KEY>"
+
+# 3) التحقق من الاتصال (المطلوب: state = open)
+curl http://localhost:8080/instance/connectionState/mybot -H "apikey: <EVOLUTION_API_KEY>"
+```
+
+### ربط البوت بالجلسة بعد الاتصال
+
+1. في `.env`: اضبط `EVOLUTION_INSTANCE` على نفس اسم الجلسة، واجعل `SIMULATION_MODE=false`.
+2. سجّل عنوان البوت كـ Webhook:
+
+```bash
+npm run setup-webhook -- https://your-public-bot-url.com/webhook
 ```
 
 > 💡 يجب أن يكون عنوان البوت متاحاً علناً ليصل إليه Evolution API
 > (استخدم خادماً عاماً أو نفقاً مثل ngrok / cloudflared أثناء التطوير).
 
-5. أرسل رسالة من واتساب إلى الرقم المتصل — سيرد عليك البوت تلقائياً! 🎉
+3. أعد تشغيل البوت `npm start` وأرسل رسالة للرقم — سيرد البوت تلقائياً! 🎉
+
+### تبديل الرقم لاحقاً
+
+لفصل الرقم الحالي وربط رقم آخر:
+```bash
+curl -X DELETE http://localhost:8080/instance/logout/mybot -H "apikey: <EVOLUTION_API_KEY>"
+npm run connect    # ثم امسح QR بالرقم الجديد
+```
 
 ---
 
